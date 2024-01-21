@@ -1,2 +1,2 @@
 # PPrun
-Script driven PowerPoint automation combine with an AI generated voice-over
+Script driven PowerPoint automation combined with an AI generated voice-over
