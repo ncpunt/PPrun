@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "PPrun": {
+      "commandName": "Project",
+      "commandLineArgs": "..\\..\\..\\Demo\\Demo"
+    }
+  }
+}
