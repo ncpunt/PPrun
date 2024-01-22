@@ -1,5 +1,4 @@
-﻿using Microsoft.Office.Interop.PowerPoint;
-using System.Media;
+﻿using System.Media;
 using PowerPoint = Microsoft.Office.Interop.PowerPoint;
 
 namespace PPrun
@@ -12,8 +11,6 @@ namespace PPrun
         public SoundPlayer              Player;     // Sound player
         public PowerPoint.SlideShowView SSV;        // PowerPoint slide show view
         PowerPoint.Presentation         PPP;        // PowerPoint presentation
-
-        public event Notify PresentationStarted;    // Fired when in presentation mode
 
         public PPScript(PowerPoint.Presentation ppp, SoundPlayer player)
         {
@@ -31,9 +28,6 @@ namespace PPrun
 
             // Move to the starting slide
             PPP.SlideShowWindow.View.GotoSlide(first);
-
-            // Fire notification
-            PresentationStarted?.Invoke();
 
             // Iterate all actions
             foreach (var action in Actions) 
@@ -59,7 +53,7 @@ namespace PPrun
                     }
                 }
 
-                // All action can be preceded wit a delay
+                // All action can be preceded with a delay
                 if (action.Del > 0) Thread.Sleep(action.Del);
 
                 // Execute action

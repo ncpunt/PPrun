@@ -1,7 +1,6 @@
 ﻿// System
 using System.Media;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 
 // Google Cloud TTS API
 using Google.Cloud.TextToSpeech.V1;
@@ -40,15 +39,6 @@ namespace PPrun
 
         // Sound player
         static SoundPlayer player;
-
-        [DllImport("user32.dll", EntryPoint = "FindWindow", SetLastError = true)]
-        static extern IntPtr FindWindowByCaption(IntPtr ZeroOnly, string lpWindowName);
-
-        [DllImport("user32.dll")]
-        public static extern bool SetForegroundWindow(IntPtr WindowHandle);
-
-        [DllImport("user32.dll")]
-        public static extern bool ShowWindow(System.IntPtr hWnd, int cmdShow);
 
         /// <summary>
         /// Defines the entry point of the application.
@@ -90,9 +80,6 @@ namespace PPrun
             string fileXLSX = Path.GetFullPath(args[0] + ".xlsx");
             string filePPTX = Path.GetFullPath(args[0] + ".pptx");
 
-            // Maximize the console window
-            MaximizeWindow(Console.Title);
-
             // Sound player
             player = new SoundPlayer();
 
@@ -109,31 +96,37 @@ namespace PPrun
             Speak("Launching PowerPoint ....", 200);
 
             // Launch powerpoint
-            ppa = new PowerPoint.Application();
+            ppa = new PowerPoint.Application(); 
 
-            // Open workbook in read-only mode because source files may get corrupted
-            exa.Workbooks.Open(fileXLSX, ReadOnly: true);
+            // Build temporary filenames
+            string tempXLSX = Path.Combine(Path.GetDirectoryName(fileXLSX), "~" + Path.GetFileName(fileXLSX));
+            string tempPPTX = Path.Combine(Path.GetDirectoryName(filePPTX), "~" + Path.GetFileName(filePPTX));
+
+            // Copy the source files
+            File.Copy(fileXLSX, tempXLSX, true);
+            File.Copy(filePPTX, tempPPTX, true);
+
+            // Use temporary files (automation is notorious for corrupting files!!!!!)
+            fileXLSX = tempXLSX;
+            filePPTX = tempPPTX;
+
+            // Open workbook 
+            exa.Workbooks.Open(fileXLSX);
 
             // Make application visible            
             exa.Visible = true;
 
-            // Open presentation in read-only mode because source files mau get corrupted.
-            ppp = ppa.Presentations.Open(filePPTX, ReadOnly: MsoTriState.msoTrue);
+            // Open presentation 
+            ppp = ppa.Presentations.Open(filePPTX);
 
-            // Make application visible            
+            // Make application visible
             ppa.Visible = MsoTriState.msoTrue;
-
-            // Move the focus to the console window
-            FocusWindow(Console.Title);
 
             // Start video recorder
             Speak("Now generating speech ....", 200);
 
             // Parse the script
             PPScript script = ParseScript();
-
-            // Subscribe to PresentatioStarted notification event.
-            script.PresentationStarted += Script_PresentationStarted;
 
             // Progress message
             Speak("Closing Excel ....", 200);
@@ -145,6 +138,7 @@ namespace PPrun
 
             // Start video recorder
             Speak("Please disable multi monitor software like display fusion");
+            Speak("Please also disable all PowerPoint Add-ins");
             Speak("Start your video recorder and press enter");
                       
             // Wait for key
@@ -161,36 +155,12 @@ namespace PPrun
             try { ppa.Quit();  } catch { }
             try { Kill("POWERPNT", "PowerPoint"); } catch { }
 
-            // Move the focus to the console window
-            FocusWindow(Console.Title);
+            // Delete temporary files
+            File.Delete(fileXLSX);
+            File.Delete(filePPTX);
 
             // Stop video recorder
             Speak("Please stop your video recorder and press enter", 200);
-        }
-
-        /// <summary>Handle presentation started notification.</summary>
-        public static void Script_PresentationStarted()
-        {
-            // Move the focus to the console window
-            FocusWindow(Console.Title);
-        }
-
-        /// <summary>Moves the focus to window.</summary>
-        static void FocusWindow(string title)
-        {
-            FocusWindow(FindWindowByCaption(0, Console.Title));
-        }
-
-        /// <summary>Moves the focus to window.</summary>
-        static void FocusWindow(IntPtr hwnd)
-        {
-            SetForegroundWindow(hwnd);
-        }
-
-        /// <summary>Maximizes the window.</summary>
-        static void MaximizeWindow(string title)
-        {
-            ShowWindow(FindWindowByCaption(0, Console.Title), 3); //SW_MAXIMIZE = 3
         }
 
         /// <summary>
@@ -286,12 +256,15 @@ namespace PPrun
                     {
                         while (ws.Range["B2"].Offset[i, 0].Text.ToString() != "")
                         {
+                            // Get delay and argument
                             int del = (int)(double)ws.Range["A2"].Offset[i, 0].Value;
                             string arg = ws.Range["B2"].Offset[i, 0].Text.ToString();
 
+                            // Create and add the action
                             PPAction action = new PPAction(del, arg);
                             script.Actions.Add(action);
 
+                            // Prefetch voices
                             if (action.Com == EPCommand.Speak)
                             {
                                 Console.WriteLine(arg);
