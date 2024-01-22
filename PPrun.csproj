@@ -26,10 +26,10 @@
 
   <ItemGroup>
     <None Update="Demo\Demo.pptx">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Demo\Demo.xlsx">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Present.pptx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
