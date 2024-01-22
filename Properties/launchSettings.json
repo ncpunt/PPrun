@@ -2,7 +2,7 @@
   "profiles": {
     "PPrun": {
       "commandName": "Project",
-      "commandLineArgs": "..\\..\\..\\Demo\\Demo"
+      "commandLineArgs": "Demo\\Demo"
     }
   }
 }

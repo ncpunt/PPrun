@@ -47,6 +47,9 @@ namespace PPrun
         [DllImport("user32.dll")]
         public static extern bool SetForegroundWindow(IntPtr WindowHandle);
 
+        [DllImport("user32.dll")]
+        public static extern bool ShowWindow(System.IntPtr hWnd, int cmdShow);
+
         /// <summary>
         /// Defines the entry point of the application.
         /// </summary>
@@ -87,6 +90,9 @@ namespace PPrun
             string fileXLSX = Path.GetFullPath(args[0] + ".xlsx");
             string filePPTX = Path.GetFullPath(args[0] + ".pptx");
 
+            // Maximize the console window
+            MaximizeWindow(Console.Title);
+
             // Sound player
             player = new SoundPlayer();
 
@@ -126,6 +132,9 @@ namespace PPrun
             // Parse the script
             PPScript script = ParseScript();
 
+            // Subscribe to PresentatioStarted notification event.
+            script.PresentationStarted += Script_PresentationStarted;
+
             // Progress message
             Speak("Closing Excel ....", 200);
 
@@ -159,6 +168,13 @@ namespace PPrun
             Speak("Please stop your video recorder and press enter", 200);
         }
 
+        /// <summary>Handle presentation started notification.</summary>
+        public static void Script_PresentationStarted()
+        {
+            // Move the focus to the console window
+            FocusWindow(Console.Title);
+        }
+
         /// <summary>Moves the focus to window.</summary>
         static void FocusWindow(string title)
         {
@@ -169,6 +185,12 @@ namespace PPrun
         static void FocusWindow(IntPtr hwnd)
         {
             SetForegroundWindow(hwnd);
+        }
+
+        /// <summary>Maximizes the window.</summary>
+        static void MaximizeWindow(string title)
+        {
+            ShowWindow(FindWindowByCaption(0, Console.Title), 3); //SW_MAXIMIZE = 3
         }
 
         /// <summary>

@@ -4,12 +4,16 @@ using PowerPoint = Microsoft.Office.Interop.PowerPoint;
 
 namespace PPrun
 {
+    public delegate void Notify();  // Notifiation event
+
     public class PPScript
     {
         public List<PPAction>           Actions;    // List of actions
         public SoundPlayer              Player;     // Sound player
         public PowerPoint.SlideShowView SSV;        // PowerPoint slide show view
         PowerPoint.Presentation         PPP;        // PowerPoint presentation
+
+        public event Notify PresentationStarted;    // Fired when in presentation mode
 
         public PPScript(PowerPoint.Presentation ppp, SoundPlayer player)
         {
@@ -27,6 +31,9 @@ namespace PPrun
 
             // Move to the starting slide
             PPP.SlideShowWindow.View.GotoSlide(first);
+
+            // Fire notification
+            PresentationStarted?.Invoke();
 
             // Iterate all actions
             foreach (var action in Actions) 
